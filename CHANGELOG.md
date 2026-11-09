@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 (unreleased)
+## 0.4.0 (2026-11-09)
 
 First public release. Built on Mutagen.Bethesda.Starfield 0.54.4 (through BuildKit 0.2.0).
 
