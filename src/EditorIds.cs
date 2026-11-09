@@ -25,7 +25,10 @@ public static class EditorIds
         var cache = Path.Combine(CacheDir, key + ".txt");
         HashSet<string> set;
         if (File.Exists(cache))
+        {
             set = new HashSet<string>(File.ReadLines(cache, Encoding.UTF8));
+            Log.Write($"edid-cache {fi.Name}: read {cache} ({set.Count} EditorIDs)");
+        }
         else
         {
             set = Read(path);
@@ -36,9 +39,13 @@ public static class EditorIds
                 var tmp = cache + ".tmp";
                 File.WriteAllLines(tmp, set, new UTF8Encoding(false));
                 File.Move(tmp, cache, overwrite: true);
+                Log.Write($"edid-cache {fi.Name}: none for this size and date, built {cache} ({set.Count} EditorIDs)");
             }
-            catch (IOException) { }               // a cache we can't write only costs time
-            catch (UnauthorizedAccessException) { }
+            // a cache we can't write only costs time
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"edid-cache {fi.Name}: read the plugin ({set.Count} EditorIDs) but couldn't write {cache}: {e.Message}");
+            }
         }
         loaded[key] = set;
         return set;

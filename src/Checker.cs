@@ -75,7 +75,9 @@ public static class Checker
         using var game = new GameData(o.DataDir, dirs);
 
         var h = RawHeader.Read(o.Plugin);
-        if (h == null) { Add("ERROR", "structure", "not a plugin: the file does not start with a TES4 header"); return Done(); }
+        if (h == null) { Log.Write("plugin header: none (the file doesn't start with TES4)"); Add("ERROR", "structure", "not a plugin: the file does not start with a TES4 header"); return Done(); }
+        Log.Write($"plugin header: {h.Style.ToString().ToLower()}{((h.Flags & Flags.Master) != 0 ? " master" : "")}, flags {h.Flags:X8}, " +
+                  $"{h.Masters.Count} masters{(h.Masters.Count > 0 ? ": " + string.Join(", ", h.Masters) : "")}");
 
         // ---- header ----
         if (h.Fields.All(f => f.Type != "HEDR")) Add("ERROR", "header", "no HEDR field");
@@ -92,6 +94,8 @@ public static class Checker
             var p = game.Locate(name);
             hh = p == null ? null : RawHeader.Read(p);
             headers[name] = hh;
+            if (p == null) Log.Write($"master {name}: NOT FOUND (looked in {string.Join(", ", game.ExtraDirs.Append(game.DataDir))})");
+            else Log.Write($"master {name}: {Log.Describe(p)}{(hh == null ? ", but it has no TES4 header" : $", {hh.Style.ToString().ToLower()}, {hh.Masters.Count} masters")}");
             if (hh != null) styleOf[name] = hh.Style;
             return hh;
         }
@@ -139,6 +143,7 @@ public static class Checker
             r.Records = w.Records;
             r.Groups = w.Groups;
         }
+        Log.Write($"stage raw read: {r.Records} records, {r.Groups} groups ({sw.Elapsed.TotalSeconds:F1} s so far)");
         foreach (var t in rf.Emotion0) Add("WARNING", "dialogue", t);
         foreach (var t in rf.NaviUnreadable) Add("WARNING", "navi", t);
 
@@ -185,9 +190,10 @@ public static class Checker
             Add("WARNING", "header", $"HEDR next FormID {next:X6} is not above the highest own FormID {maxOwn:X6}");
 
         // ---- read + links (Mutagen) ----
-        if (missing.Count > 0) { r.CannotCheckLinks = true; return Done(); }
+        if (missing.Count > 0) { Log.Write($"stopped before the Mutagen stages: {missing.Count} master(s) missing; install them, or point --data / --masters-dir at them"); r.CannotCheckLinks = true; return Done(); }
         try { foreach (var m in h.Masters) game.Open(m); }
-        catch (Exception e) { Add("ERROR", "read", $"Mutagen can't open the masters: {e.GetType().Name}: {e.Message}"); r.CannotCheckLinks = true; return Done(); }
+        catch (Exception e) { Log.Write($"Mutagen can't open the masters: {e}"); Add("ERROR", "read", $"Mutagen can't open the masters: {e.GetType().Name}: {e.Message}"); r.CannotCheckLinks = true; return Done(); }
+        Log.Write($"stage masters opened with Mutagen: load order {string.Join(", ", game.LoadOrder.Select(m => m.ModKey.FileName.String))} ({sw.Elapsed.TotalSeconds:F1} s so far)");
         // NAVI NVMI navmesh IDs (read raw above), decoded with the plugin's own master lists
         var navKeys = new List<(string Rec, string What, uint Fid, (string, uint)? Key)>();
         foreach (var (rec, what, fid) in rf.NavLinks)
@@ -196,12 +202,13 @@ public static class Checker
             var st = file == null ? Style.Full : file.Equals(self, StringComparison.OrdinalIgnoreCase) ? h.Style : styleOf.GetValueOrDefault(file, Style.Full);
             navKeys.Add((rec, what, fid, file == null ? null : (file.ToLowerInvariant(), IdMap.Mask(local, st))));
         }
-        LinkPass(o, game, self, styleOf, r, Add, navKeys);
+        LinkPass(o, game, self, styleOf, r, Add, navKeys, sw);
         return Done();
 
         Result Done()
         {
             r.Elapsed = sw.Elapsed;
+            Log.Write($"stage done: {sw.Elapsed.TotalSeconds:F1} s");
             r.Summary = $"{h?.Style.ToString().ToLower() ?? "?"}{((h?.Flags ?? 0) & Flags.Master) switch { 0 => "", _ => " master" }}, {h?.Masters.Count ?? 0} masters, {r.Records} records, {r.Overrides} overrides ({r.Itms} ITM), {r.Links} links";
             return r;
         }
@@ -214,11 +221,12 @@ public static class Checker
     }
 
     static void LinkPass(Options o, GameData game, string self, Dictionary<string, Style> styleOf, Result r, Action<string, string, string> add,
-        List<(string Rec, string What, uint Fid, (string, uint)? Key)> navKeys)
+        List<(string Rec, string What, uint Fid, (string, uint)? Key)> navKeys, Stopwatch sw)
     {
         IModGetter mod;
         try { mod = game.OpenPlugin(o.Plugin); }
-        catch (Exception e) { add("ERROR", "read", $"Mutagen can't open the plugin: {e.GetType().Name}: {e.Message}"); r.CannotCheckLinks = true; return; }
+        catch (Exception e) { Log.Write($"Mutagen can't open the plugin: {e}"); add("ERROR", "read", $"Mutagen can't open the plugin: {e.GetType().Name}: {e.Message}"); r.CannotCheckLinks = true; return; }
+        void Stage(string what) => Log.Write($"stage {what} ({sw.Elapsed.TotalSeconds:F1} s so far)");
         using var _ = mod as IDisposable;
         var selfKey = mod.ModKey;
         static (string, uint) K(FormKey fk) => (fk.ModKey.FileName.String.ToLowerInvariant(), fk.ID);
@@ -271,6 +279,7 @@ public static class Checker
         catch (Exception e) { add("ERROR", "read", $"Mutagen stopped reading the plugin: {e.GetType().Name}: {e.Message}"); }
         r.Links = links.Count;
         r.Overrides = overrides.Count;
+        Stage($"Mutagen read: {perRecord.Count} records, {overrides.Count} overrides, {links.Count} links");
 
         // 1b. content rules (0.2.0): conditions with an empty form parameter, scene alias numbers
         var ownQuests = new Dictionary<FormKey, IQuestGetter>();
@@ -293,7 +302,9 @@ public static class Checker
             {
                 asked = true;
                 try { learned = LearnedCache.Scenes(o.DataDir); }
-                catch (Exception e) { learnFailed = $"{e.GetType().Name}: {e.Message}"; }
+                catch (Exception e) { learnFailed = $"{e.GetType().Name}: {e.Message}"; Log.Write($"scene-quirks: couldn't learn the official scene list: {e}"); }
+                if (learned == null && learnFailed == "") Log.Write($"scene-quirks: no official masters in {o.DataDir}, so no learned list" +
+                    (o.UseBuiltInSceneQuirks && Rules.HaveBuiltInSceneQuirks ? " (the built-in list fills in)" : "; official scenes are not checked"));
             }
             if (learned != null && learned.Masters.Contains(m)) return learned.Quirks.Contains(s.FormKey.ToString());
             if (o.UseBuiltInSceneQuirks && Rules.HaveBuiltInSceneQuirks) return Rules.IsBuiltInSceneQuirk(s.FormKey);
@@ -317,6 +328,7 @@ public static class Checker
             r.ScenesNotCheckedWhy = learnFailed != "" ? $"the official scene list couldn't be learned: {learnFailed}"
                 : $"{names} not in the Data folder";
         }
+        Stage("conditions, dialogue and scenes");
         // 1c. EditorIDs (0.3.0): repeated in the plugin, or reusing a master's (masters at any depth)
         try
         {
@@ -326,7 +338,8 @@ public static class Checker
             var masterPaths = game.LoadOrder.Select(m => game.Locate(m.ModKey.FileName)).Where(p => p != null).Cast<string>().ToList();
             EditorIds.Check(ownNames, masterPaths, add);
         }
-        catch (Exception e) { add("WARNING", "editorids", $"EditorIDs not checked: {e.GetType().Name}: {e.Message}"); }
+        catch (Exception e) { Log.Write($"editorids: {e}"); add("WARNING", "editorids", $"EditorIDs not checked: {e.GetType().Name}: {e.Message}"); }
+        Stage("editorids");
 
         foreach (var n in navKeys) if (n.Key is { } nk) targets.Add(nk);
 
@@ -356,6 +369,7 @@ public static class Checker
             };
             w.Walk();
         }
+        Stage($"link targets looked up: {targets.Count} wanted, {found.Count} found in {files.Count} files and the engine list");
 
         // 3. links
         var notTyped = new Dictionary<string, int>();
@@ -411,6 +425,7 @@ public static class Checker
         if (!IsOfficial(self))
             foreach (var ov in itms) add("WARNING", "itm", $"{Name(ov)} is identical to the master version it overrides (ITM)");
         if (notCompared > 0) add("WARNING", "itm", $"{notCompared} override(s) couldn't be compared with their master version");
+        Stage($"itm: {itms.Count} of {overrides.Count} overrides identical to master{(IsOfficial(self) ? " (official plugin: count only)" : "")}");
         if (Environment.GetEnvironmentVariable("SFMODCHECK_TIMING") == "1") Console.Error.WriteLine($"itm: {overrides.Count} overrides, {itms.Count} ITM, {itmSw.Elapsed.TotalSeconds:F2} s");
     }
 

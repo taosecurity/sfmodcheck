@@ -69,7 +69,7 @@ jobs:
         run: |
           dotnet publish src/sfmodcheck.csproj -c Release -r win-x64 -o build/exe -p:SfModCheckStandalone=true -p:RestoreLockedMode=true
           mkdir -p build/zip
-          cp build/exe/sfmodcheck.exe README.md LICENSE NOTICE PRIVACY.md CHANGELOG.md build/zip/
+          cp build/exe/sfmodcheck.exe README.md AGENTS.md LICENSE NOTICE PRIVACY.md CHANGELOG.md build/zip/
           (cd build/zip && zip -9 -X "../../out/sfmodcheck-$VERSION-win-x64.zip" *)
       - name: Checksums
         working-directory: out

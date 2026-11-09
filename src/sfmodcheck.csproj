@@ -53,6 +53,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(SfModCheckPack)' == 'true'">
     <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\AGENTS.md" Pack="true" PackagePath="\" Condition="Exists('..\AGENTS.md')" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\LICENSE')" />
     <None Include="..\NOTICE" Pack="true" PackagePath="\" Condition="Exists('..\NOTICE')" />
   </ItemGroup>

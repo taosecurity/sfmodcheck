@@ -45,8 +45,14 @@ public static class LearnedCache
             var lines = File.ReadAllLines(file, Encoding.UTF8);
             var keyLines = lines.Where(l => l.StartsWith("# key: ") || l.StartsWith("# master: "));
             if (keyLines.SequenceEqual(key, StringComparer.OrdinalIgnoreCase))
-                return loaded[full] = new SceneList(Entries(lines), set, file, false);
+            {
+                var list = new SceneList(Entries(lines), set, file, false);
+                Log.Write($"scene-quirks: read {file} ({list.Quirks.Count} official scenes skipped; covers {masters.Count} masters)");
+                return loaded[full] = list;
+            }
+            Log.Write($"scene-quirks: {file} is for other master sizes or dates (a game update?), so the list is learned again");
         }
+        else Log.Write($"scene-quirks: no cache for these masters ({file}), so the list is learned now");
 
         Console.Error.WriteLine($"sfmodcheck: learning the official scene quirks from {masters.Count} masters in {full} (once; cached in {SceneDir})");
         var learned = Rules.LearnSceneQuirkLines(full);
@@ -60,9 +66,13 @@ public static class LearnedCache
             var tmp = file + ".tmp";
             File.WriteAllText(tmp, string.Join("\n", text) + "\n", new UTF8Encoding(false));
             File.Move(tmp, file, overwrite: true);
+            Log.Write($"scene-quirks: learned {learned.Count(l => l.Length > 0 && !l.StartsWith('#'))} official scenes, wrote {file}");
         }
-        catch (IOException) { }               // a cache we can't write only costs time next run
-        catch (UnauthorizedAccessException) { }
+        // a cache we can't write only costs time next run
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"scene-quirks: learned the list but couldn't write {file}: {e.Message}");
+        }
         return loaded[full] = new SceneList(Entries(learned), set, file, true);
     }
 

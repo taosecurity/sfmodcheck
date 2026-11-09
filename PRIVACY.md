@@ -18,7 +18,8 @@ sfmodcheck runs on your own computer. It collects no data and sends nothing anyw
 
 ## What it writes
 
-Only its own caches, in `%LOCALAPPDATA%\sfmodcheck\` (on Linux `~/.local/share/sfmodcheck/`):
+Only its own caches, in `%LOCALAPPDATA%\sfmodcheck\` (on Linux `~/.local/share/sfmodcheck/`; the environment variable
+`SFMODCHECK_CACHE_DIR` moves them):
 
 - `edid-cache\`: the EditorIDs of the masters it has read, one file per master, keyed by the master's name, size and
   modified time;
@@ -27,7 +28,9 @@ Only its own caches, in `%LOCALAPPDATA%\sfmodcheck\` (on Linux `~/.local/share/s
 They hold data from your own game files only, and stay on your computer. Delete the folder at any time; sfmodcheck
 rebuilds what it needs on the next check.
 
-It prints its results to the console. It writes no log files.
+It prints its results to the console. It writes a log file only when you ask for one with `--log <file>`, to the file
+you name (`--verbose` prints the same lines on the console instead). The log lists the paths of the plugin, its
+masters, the Data folder and the caches, so it can include your Windows user name; read it before you share it.
 
 ## Other programs it starts
 

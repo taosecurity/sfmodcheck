@@ -1,9 +1,17 @@
 # sfmodcheck
 
-sfmodcheck reads a Starfield plugin (`.esm`) and reports problems that would break it in the game: damaged files, bad
-headers, FormIDs outside the plugin's range, links to records that don't exist, broken conditions, scenes and navmesh
-links, repeated EditorIDs, deleted records and "identical to master" records. It only reads files: it never changes a
-plugin. A typical mod takes about 4 seconds.
+**Find out whether your Starfield mod's plugin is broken before you play it or release it.** sfmodcheck reads a
+plugin (`.esm`) and reports problems that would break it in the game: damaged files, bad headers, FormIDs outside the
+plugin's range, links to records that don't exist, broken conditions, scenes and navmesh links, repeated EditorIDs,
+deleted records and "identical to master" records. After each kind of problem it says how to fix it in xEdit or the
+Creation Kit. It only reads files: it never changes a plugin. A typical mod takes about 4 seconds.
+
+**First command:** download the exe zip from [Releases](https://github.com/taosecurity/sfmodcheck/releases), unzip it,
+and drag `MyMod.esm` onto `sfmodcheck.exe`. Or, from a prompt:
+
+    sfmodcheck check MyMod.esm
+
+For AI assistants: step-by-step install and use instructions are in [AGENTS.md](AGENTS.md).
 
 It does the same kind of job as part of xEdit's "Check for Errors", but from the command line, so it fits a build
 script or a release checklist, and it gives each problem one line that says what is wrong and where. It is built on
@@ -28,7 +36,33 @@ folder and says so), or run it from a command prompt with `--data`:
 
     sfmodcheck.exe check MyMod.esm --data "D:\XboxGames\Starfield\Content\Data"
 
-Masters that aren't in the Data folder are also looked for in the plugin's own folder.
+Masters that aren't in the Data folder are also looked for in the plugin's own folder. See
+[Where your game's Data folder is](#where-your-games-data-folder-is) for Game Pass, Vortex and Mod Organizer 2.
+
+## Where your game's Data folder is
+
+sfmodcheck needs the game's masters (Starfield.esm, the DLC and Creations masters your plugin lists). It reads them
+from the game's Data folder and from the folders given with `--masters-dir`, and never changes them.
+
+- **Steam:** `C:\Program Files (x86)\Steam\steamapps\common\Starfield\Data` is the default, so nothing is needed. A
+  Steam library on another drive: `--data "E:\SteamLibrary\steamapps\common\Starfield\Data"`.
+- **Game Pass (Xbox app):** the game usually sits in `<drive>:\XboxGames\Starfield\Content`, so use
+  `--data "C:\XboxGames\Starfield\Content\Data"` (change the drive letter to the drive the game is installed on).
+- **Vortex:** Vortex deploys mods into the game's own Data folder, so the Steam or Game Pass line above applies. To
+  check a plugin before deploying it, give its path in Vortex's staging folder and keep `--data` pointing at the
+  game's Data folder.
+- **Mod Organizer 2:** MO2 keeps each mod in its own folder (`mods\<ModName>\`) and leaves the game's Data folder
+  alone. Give the plugin's path inside `mods\`, `--data` the game's real Data folder, and `--masters-dir` the folder of
+  any mod whose plugin is one of your masters (once per folder):
+
+      sfmodcheck check "C:\Modding\MO2\mods\MyMod\MyMod.esm" --data "C:\Program Files (x86)\Steam\steamapps\common\Starfield\Data" --masters-dir "C:\Modding\MO2\mods\MainMod"
+
+  (Programs started from MO2's own Run menu see the mods through its virtual Data folder, so adding sfmodcheck there
+  as an executable with the arguments `check <plugin>` should also work; we haven't tried it.)
+
+Without `--data`, when Steam's folder has no Starfield.esm, a plugin that sits in a folder holding Starfield.esm uses
+that folder (the output says so). When a plugin needs Starfield.esm and none is found, a note on stderr says to use
+`--data`.
 
 ## Install
 
@@ -48,6 +82,7 @@ Two ways, both from the [Releases](https://github.com/taosecurity/sfmodcheck/rel
 ## Run it
 
     sfmodcheck check <plugin> [--data <Data folder>] [--masters-dir <folder>]... [--max <lines per check>] [--quiet] [--no-hints]
+                              [--verbose] [--log <file>]
     sfmodcheck --version
 
 - `--data`: the game's Data folder (default: Steam's usual one, see above).
@@ -56,8 +91,35 @@ Two ways, both from the [Releases](https://github.com/taosecurity/sfmodcheck/rel
 - `--max`: the most lines printed per check (default 100). The counts in the RESULT line are always complete.
 - `--quiet`: leave out the first summary line.
 - `--no-hints`: leave out the HINT lines.
+- `--verbose`: print the troubleshooting log on stderr (lines start with `log: `). See below.
+- `--log <file>`: write the troubleshooting log to that file. See below.
 
 `sfmodcheck <plugin>` without the word `check` does the same.
+
+A wrong argument (a missing value, `--max` with something that isn't a number, a plugin or Data folder that doesn't
+exist, a log file it can't write) stops with exit code 2 and a message that names the file or option and what to do.
+
+### Troubleshooting log
+
+When something goes wrong, or a result looks odd, run the same check again with a log:
+
+    sfmodcheck check MyMod.esm --log sfmodcheck-log.txt
+
+The log goes only where you ask: `--log <file>` writes it to that file (a new file each run, in the current folder
+unless you give a full path), and `--verbose` prints the same lines on stderr instead. Nothing is logged without one
+of them. The findings and the RESULT line are the same with or without the log.
+
+What it records, with the time of each line: the sfmodcheck, Windows (or Linux) and .NET versions; the arguments; the
+plugin's path, size and date and its header (light, medium or full; its masters); which Data folder was used and why
+(`--data`, Steam's usual folder, or the plugin's own folder); for each master, where it was found (or every place
+looked when it wasn't); each cache read, rebuilt or not writable, with its path; how long each stage took; the number
+of findings per check; and, when sfmodcheck itself fails, the full error with its stack trace.
+
+The log names folders on your PC (your user name may be in them). Read it before you attach it to an
+[issue](https://github.com/taosecurity/sfmodcheck/issues).
+
+For a dropped plugin (drag and drop), open a command prompt in the exe's folder and run the command above with the
+plugin's full path.
 
 ### What the output looks like
 
@@ -154,7 +216,8 @@ filter.
 - Caches live in `%LOCALAPPDATA%\sfmodcheck\` (on Linux `~/.local/share/sfmodcheck/`): `edid-cache\` (the masters'
   EditorIDs, about 7 MB for Starfield.esm) and `scene-quirks\` (the learned official scene list, a few KB). Each is
   keyed by the master's name, size and modified time, so a game update rebuilds it on the next check. Delete the
-  folder to clear them.
+  folder to clear them. Set the environment variable `SFMODCHECK_CACHE_DIR` to keep them somewhere else (for example
+  next to the exe for a portable copy).
 
 ## Traps (wrong answers with no error)
 
@@ -191,7 +254,8 @@ Package versions are fixed by the lock files (`packages.public.lock.json`): Muta
     dotnet pack src -c Release -p:SfModCheckPack=true -o out
     dotnet publish src -c Release -r win-x64 -p:SfModCheckStandalone=true -o out/exe
 
-The tests make every master and plugin they check in a temp folder, so they need no game files. Five of them need
+The tests make every master and plugin they check in a temp folder, so they need no game files. A test also checks
+that every option in `src/Program.cs` is named in this README and in AGENTS.md. Five of them need
 the real Starfield.esm (engine-made records and the official scene list) and are skipped when it isn't found; set
 `SFMODCHECK_TEST_DATA` to your Data folder to run them. The tests never touch your real caches.
 

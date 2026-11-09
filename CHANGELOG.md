@@ -14,5 +14,13 @@ First public release. Built on Mutagen.Bethesda.Starfield 0.54.4 (through BuildK
 - Drag and drop: a plugin dropped on `sfmodcheck.exe` is checked in its own window, which stays open at the end. With
   no `--data` and no game in Steam's usual folder, a plugin inside a Data folder uses that folder.
 - Two downloads: a dotnet tool package and a stand-alone `sfmodcheck.exe` (win-x64, .NET built in).
+- Troubleshooting log: `--log <file>` writes what sfmodcheck read (plugin, Data folder and why, where each master was
+  found, caches used or rebuilt), the time per stage, the findings per check and any error in full; `--verbose` prints
+  the same on stderr. The findings and the RESULT line don't change.
+- Errors for wrong arguments name the file or option and the fix (a missing option value or a bad `--max` used to end
+  in a stack trace). A `--data` folder that doesn't exist stops at once with exit code 2.
+- `SFMODCHECK_CACHE_DIR` moves the caches.
+- AGENTS.md: step-by-step install and use instructions for AI assistants (also in both downloads). README notes for
+  Game Pass, Vortex and Mod Organizer 2 installs.
 
 Earlier versions (0.1.0 to 0.3.0, 2026-11-06 to 2026-11-08) were private, under the name StarfieldPluginCheck.
