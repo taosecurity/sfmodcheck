@@ -1,0 +1,214 @@
+# Records Starfield's engine creates (FormID in Starfield.esm, record type, EditorID).
+# From xEdit's Core\Hardcoded\Starfield.esm (TES5Edit, Mozilla Public License 2.0); made by tools\engine_forms.py.
+# Plus PlayerRef 000014, which xEdit's list doesn't have.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL
+# was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+# Original: https://github.com/TES5Edit/TES5Edit (ElminsterAU and the xEdit team). See NOTICE.
+00001C BPTD PlayerBodyPartData
+00005B SMBN 
+000060 STAT 
+000096 STAT 
+000176 MESG HelpChargenTagSkills
+0001FA STAT 
+0001FB STAT 
+000276 IPDS DefaultImpactDataSet
+0002BC AVIF Aggression
+0002BD AVIF Confidence
+0002BE AVIF Energy
+0002BF AVIF Morality
+0002C1 AVIF Assistance
+0002CA AVIF AttackConditionAlt1
+0002CB AVIF AttackConditionAlt2
+0002CE AVIF RotationSpeedCondition
+0002CF AVIF AttackConditionAlt3
+0002D0 AVIF WorkshopPowerConnection
+0002D1 AVIF WorkshopID
+0002D2 AVIF AnimationMult
+0002D3 AVIF WeapReloadSpeedMult
+0002D6 AVIF UnusedStamina
+0002D8 AVIF OxygenRate
+0002D9 AVIF ConditionRate
+0002DB AVIF ENV_DamageRate
+0002DD AVIF CriticalHitChance
+0002DE AVIF MeleeDamage
+0002E0 AVIF Mass
+0002E2 AVIF ENV_Capacity
+0002EC AVIF Suspicious
+0002ED AVIF BloodyMess
+0002EE AVIF ENV_DamageHealthMax
+0002EF AVIF PowerArmorHeadCondition
+0002F0 AVIF PowerArmorTorsoCondition
+0002F1 AVIF PowerArmorLeftArmCondition
+0002F2 AVIF Paralysis
+0002F4 AVIF NightEye
+0002F5 AVIF DetectLifeRange
+0002F7 AVIF WaterWalking
+0002F9 AVIF Fame
+0002FA AVIF Infamy
+0002FB AVIF JumpingBonus
+0002FC AVIF WardPower
+0002FD AVIF RightItemCharge
+0002FE AVIF ArmorPerks
+0002FF AVIF ShieldPerks
+000300 AVIF WardDeflection
+000301 AVIF Variable01
+000302 AVIF Variable02
+000303 AVIF Variable03
+000304 AVIF Variable04
+000305 AVIF Variable05
+000306 AVIF Variable06
+000307 AVIF Variable07
+000308 AVIF Variable08
+000309 AVIF Variable09
+00030A AVIF Variable10
+00030B AVIF BowSpeedBonus
+00030C AVIF FavorActive
+00030D AVIF FavorsPerDay
+00030E AVIF FavorsPerDayTimer
+00030F AVIF LeftItemCharge
+000310 AVIF AbsorbChance
+000311 AVIF Blindness
+000312 AVIF WeaponSpeedMult
+000313 AVIF ENV_Damage_Soak
+000314 AVIF BowStaggerBonus
+000315 AVIF Telekinesis
+000316 AVIF FavorPointsBonus
+000317 AVIF LastBribedIntimidated
+000318 AVIF LastFlattered
+000319 AVIF MovementNoiseMult
+00031A AVIF BypassVendorStolenCheck
+00031B AVIF BypassVendorKeywordCheck
+00031C AVIF WaitingForPlayer
+00031D AVIF SkillMagAV01
+00031E AVIF SkillMagAV02
+00031F AVIF SkillMagAV03
+000320 AVIF SkillMagAV04
+000321 AVIF SkillMagAV05
+000322 AVIF SkillMagAV06
+000323 AVIF SkillMagAV07
+000324 AVIF SkillMagAV08
+000325 AVIF SkillMagAV09
+000326 AVIF SkillMagAV10
+000327 AVIF SkillMagAV11
+000328 AVIF SkillMagAV12
+000329 AVIF SkillMagAV13
+00032A AVIF SkillMagAV14
+00032B AVIF SkillMagAV15
+00032C AVIF KARMA
+00032D AVIF Deafness
+00032E AVIF PowerGenerated
+00032F AVIF PowerRadiation
+000330 AVIF PowerRequired
+000331 AVIF Food
+000332 AVIF Water
+000334 AVIF Bed
+000335 AVIF Happiness
+000336 AVIF FallSpeedMult
+000337 AVIF WorkshopItemOverlap
+000338 AVIF WorkshopProduceUntilNextCycle
+000339 AVIF WorkshopItemClampDirection
+00033A AVIF WorkshopItemZOffset
+00033B AVIF WorkshopActorWounded
+00033C AVIF WorkshopPlayerOwned
+00033D AVIF WorkshopStackableItem
+00033E AVIF WorkshopSnapPointRadius
+00033F AVIF WorkshopAnythingIsGround
+000340 AVIF IgnorePlayerWhileFrenzied
+000341 AVIF LeftWeaponSpeedMult
+000342 AVIF ProduceUses
+000343 AVIF CombatHealthRegenMult
+000345 AVIF FollowerDistance
+000348 AVIF WorkshopCurrentTriangles
+000349 AVIF WorkshopMaxTriangles
+00034A AVIF WorkshopCurrentDraws
+00034B AVIF WorkshopMaxDraws
+00034D AVIF WorkshopIgnoreSimpleIntersections
+00034E AVIF WorkshopAllowUnsupportedStacking
+00034F AVIF CarbonDioxide
+000350 AVIF CarbonDioxideOxygenMax
+000351 AVIF CarbonDioxideRate
+000352 AVIF CarbonDioxideRateMult
+000353 AVIF StarPowerRateMult
+000354 AVIF WorkshopSnapTransmitsPower
+000355 AVIF ENV_DamageRateMult
+000356 AVIF DragonRend
+000357 AVIF AttackDamageMult
+000359 AVIF OxygenRateMult
+00035A AVIF ConditionRateMult
+00035C AVIF PowerArmorBattery
+00035D AVIF PowerArmorRightArmCondition
+00035E AVIF PowerArmorLeftLegCondition
+00035F AVIF ReflectDamage
+000360 AVIF CraftingAbilityGeneral
+000361 AVIF CraftingAbilityExplosives
+000362 AVIF CraftingAbilityGuns
+000363 AVIF CraftingAbilityMechanics
+000364 AVIF CraftingAbilityMedicine
+000365 AVIF CraftingAbilityMelee
+000366 AVIF CraftingAbilityScience
+000367 AVIF CraftingAbilitySurvival
+000368 AVIF ComponentUsageMultChemical
+000369 AVIF ComponentUsageMultMetallic
+00036A AVIF ComponentUsageMultOrganic
+00036B AVIF ComponentUsageMultTechnical
+000373 AVIF AvailableCondition1
+000374 AVIF AvailableCondition2
+000376 AVIF One Handed Weapons
+000377 AVIF Two Handed Weapons
+000378 AVIF Marksman
+000379 AVIF Block
+00037A AVIF Smithing
+00037B AVIF Heavy Armor
+00037C AVIF Light Armor
+00037D AVIF PickPocket
+00037E AVIF Lockpicking
+00037F AVIF Sneak
+000380 AVIF Alchemy
+000381 AVIF Speechcraft
+000382 AVIF Alteration
+000383 AVIF Conjuration
+000384 AVIF Destruction
+000385 AVIF StarPower
+000386 AVIF StarPowerRecoverRate
+000387 AVIF OrganicResourceType
+000388 AVIF PowerArmorRightLegCondition
+00038A AVIF HealthAnimHeadCondition
+00038B AVIF HealthAnimLeftArmCondition
+00038C AVIF HealthAnimRightArmCondition
+00038D AVIF HealthAnimLeftLegCondition
+00038E AVIF HealthAnimRightLegCondition
+00038F AVIF HealthAnimTorsoCondition
+000390 AVIF Invulnerable
+000393 AVIF WorkshopState
+000394 AVIF WorkshopStateTransition
+000395 AVIF WorkshopStateTimeout
+000396 AVIF WorkshopLevelObject
+000397 AVIF WorkshopLevel
+000398 AVIF WorkshopLevelHealthPercent
+000399 AVIF WorkshopCurrentBudget
+00039A AVIF RangedDamage
+00039B AVIF CriticalHitIncMult
+00039C AVIF CriticalHitDamageMult
+00039E AVIF Electromagnetic Health
+00039F AVIF ElectromagneticRecoverRateMult
+0003A0 AVIF ElectromagneticRecoverRate
+0003A1 AVIF ElectromagneticToDamageConversionRate
+0003A2 AVIF WorkshopPowerConnectionAndReceiver
+0003A6 AVIF SpaceshipWeaponGroup1EMHealth
+0003A7 AVIF SpaceshipWeaponGroup2EMHealth
+0003A8 AVIF SpaceshipWeaponGroup3EMHealth
+0003A9 AVIF SpaceshipWeaponGroup1DamageChance
+0003AA AVIF SpaceshipWeaponGroup2DamageChance
+0003AB AVIF SpaceshipWeaponGroup3DamageChance
+0003AC AVIF Legendary Rank
+0003AD AVIF Weather Transition Percent
+0003AE AVIF Security Menu Ring Highlighting Enabled
+0003AF AVIF Security Menu Disable Unused Keys Option Enabled
+0003B0 AVIF Security Menu Autoattempt Points Multiplier
+0003B1 AVIF Security Menu Max Autoattempt Points
+0003B2 AVIF GalaxyBodyScanAbility
+0003B3 AVIF DistantContainerAbility
+0003B4 AVIF SpaceshipCustomized
+0003B5 AVIF SpaceshipPainted
+000014 REFR PlayerRef

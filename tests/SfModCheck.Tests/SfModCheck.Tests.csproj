@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- sfmodcheck tests. Every master and plugin they check is made by the tests in a temp folder (made-up names, no
+       game files), so they run anywhere, including GitHub. A few tests marked NeedsStarfield use the game's
+       Starfield.esm and are skipped when it isn't there (SFMODCHECK_TEST_DATA = the Data folder to use).
+       dotnet test tests\SfModCheck.Tests -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- BuildKit: the nuget.org package, or the local project in the author's working copy (same switch as src\sfmodcheck.csproj). -->
+    <BuildKitProject>$(MSBuildThisFileDirectory)..\..\..\tools\BuildKit\BuildKit.csproj</BuildKitProject>
+    <UseBuildKitPackage Condition="'$(UseBuildKitPackage)' == ''">true</UseBuildKitPackage>
+    <NuGetLockFilePath Condition="'$(UseBuildKitPackage)' == 'true'">packages.public.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\sfmodcheck.csproj" />
+  </ItemGroup>
+
+  <!-- official Mutagen.Bethesda.Starfield 0.54.4 comes through BuildKit -->
+  <ItemGroup Condition="'$(UseBuildKitPackage)' != 'true'">
+    <ProjectReference Include="$(BuildKitProject)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseBuildKitPackage)' == 'true'">
+    <PackageReference Include="Taosecurity.Starfield.BuildKit" Version="[0.2.0]" />
+  </ItemGroup>
+
+</Project>

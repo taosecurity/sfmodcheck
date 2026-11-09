@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-FileCopyrightText: 2026 Richard Bejtlich
+#
+# Builds and tests sfmodcheck on Windows and Linux, and checks that the dotnet tool package and the stand-alone
+# Windows exe build. On a version tag (v0.4.0), also makes a GitHub release with the tool package
+# (sfmodcheck.<version>.nupkg), the stand-alone exe zip (sfmodcheck-<version>-win-x64.zip) and their SHA-256 checksums.
+# The runners have no game files, so the five tests that need Starfield.esm are skipped there.
+name: tests
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
+      - name: Restore (lock files must match)
+        run: dotnet restore tests/SfModCheck.Tests/SfModCheck.Tests.csproj --locked-mode
+      - name: Tests
+        run: dotnet test tests/SfModCheck.Tests/SfModCheck.Tests.csproj -c Release --no-restore
+      - name: Tool package builds
+        run: dotnet pack src/sfmodcheck.csproj -c Release -o out -p:SfModCheckPack=true -p:RestoreLockedMode=true
+      - name: Stand-alone exe builds
+        run: dotnet publish src/sfmodcheck.csproj -c Release -r win-x64 -o out/exe -p:SfModCheckStandalone=true -p:RestoreLockedMode=true
+      - name: Stand-alone exe runs
+        if: runner.os == 'Windows'
+        run: out/exe/sfmodcheck.exe --version
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # the GitHub release
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
+      - name: Tag, project version and CHANGELOG agree
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/sfmodcheck.csproj)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME but src/sfmodcheck.csproj says $version"; exit 1; }
+          grep -q "^## $version (20[0-9][0-9]-[0-9][0-9]-[0-9][0-9])" CHANGELOG.md || { echo "CHANGELOG.md has no dated entry for $version"; exit 1; }
+          awk -v v="$version" '$0 ~ "^## "v" " {on=1; next} /^## / {on=0} on' CHANGELOG.md > release-notes.md
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Tool package
+        run: dotnet pack src/sfmodcheck.csproj -c Release -o out -p:SfModCheckPack=true -p:RestoreLockedMode=true
+      - name: Stand-alone exe zip
+        run: |
+          dotnet publish src/sfmodcheck.csproj -c Release -r win-x64 -o build/exe -p:SfModCheckStandalone=true -p:RestoreLockedMode=true
+          mkdir -p build/zip
+          cp build/exe/sfmodcheck.exe README.md LICENSE NOTICE PRIVACY.md CHANGELOG.md build/zip/
+          (cd build/zip && zip -9 -X "../../out/sfmodcheck-$VERSION-win-x64.zip" *)
+      - name: Checksums
+        working-directory: out
+        run: |
+          for f in *.nupkg *.zip; do sha256sum "$f" > "$f.sha256"; done
+          sha256sum -c ./*.sha256
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" out/*.nupkg out/*.zip out/*.sha256
+          --title "sfmodcheck ${GITHUB_REF_NAME#v}"
+          --notes-file release-notes.md
+          --verify-tag

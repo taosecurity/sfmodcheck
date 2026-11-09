@@ -1,0 +1,12 @@
+bin/
+obj/
+out/
+*.user
+.vs/
+# never: game files, reports, load orders
+*.esm
+*.esp
+*.esl
+*.ba2
+Plugins.txt
+plugins.txt

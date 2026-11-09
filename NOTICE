@@ -1,0 +1,26 @@
+sfmodcheck
+Copyright (C) 2026 Richard Bejtlich
+
+sfmodcheck is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+License version 3, as published by the Free Software Foundation (see LICENSE). It comes with no warranty.
+
+Third-party material
+--------------------
+
+data/engine-forms.txt
+    The list of records Starfield's engine creates at run time (FormID, record type, EditorID) comes from xEdit's
+    hardcoded Starfield list, Core/Hardcoded/Starfield.esm in TES5Edit (https://github.com/TES5Edit/TES5Edit), by
+    ElminsterAU and the xEdit team. That file is used under the Mozilla Public License 2.0
+    (https://mozilla.org/MPL/2.0/), and data/engine-forms.txt stays under MPL-2.0 with its header kept. The only
+    change is the format (one line per record) and one added record, PlayerRef 000014. sfmodcheck builds the file
+    into its exe unchanged; the source form is this file in the repository.
+
+Libraries (not included in the source; downloaded from nuget.org at build time)
+    Mutagen.Bethesda.Starfield and its Mutagen dependencies, by Noggog and the Mutagen contributors, GPL-3.0
+        (https://github.com/Mutagen-Modding/Mutagen).
+    Taosecurity.Starfield.BuildKit, by Richard Bejtlich, GPL-3.0 (https://github.com/taosecurity/BuildKit).
+    Other packages each carry their own licence, listed on nuget.org. The stand-alone exe also contains the .NET
+    runtime (MIT licence, https://github.com/dotnet/runtime).
+
+sfmodcheck holds no Bethesda game files or game code. It reads the official masters from your own game installation
+when it runs.

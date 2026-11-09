@@ -1,0 +1,84 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- sfmodcheck (StarfieldPluginCheck until 0.3.0): read-only checks of a built Starfield plugin (replaces "xDump -check" in our build gates).
+       Built on BuildKit, so it uses the same official Mutagen 0.54.4 pin as the builders.
+
+       BuildKit comes from nuget.org (Taosecurity.Starfield.BuildKit, exact version). The author's private working copy
+       has a Directory.Build.props that sets UseBuildKitPackage=false, which uses the local ..\..\tools\BuildKit project
+       instead. Each way has its own lock file, so neither changes the other:
+         packages.lock.json                    project reference (author's copy only)
+         packages.public.lock.json             nuget.org package
+         packages.public.win-x64.lock.json     nuget.org package, stand-alone exe (dotnet publish -r win-x64)
+       Builds:
+         dotnet build src -c Release                                         the exe in bin\Release\net9.0
+         dotnet pack src -c Release -p:SfModCheckPack=true -o out            the dotnet tool package (sfmodcheck.<v>.nupkg)
+         dotnet publish src -c Release -r win-x64 -p:SfModCheckStandalone=true -o out\exe   one sfmodcheck.exe, no .NET needed -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>SfModCheck</RootNamespace>
+    <AssemblyName>sfmodcheck</AssemblyName>
+    <Version>0.4.0</Version>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Build data\scene-alias-quirks.txt into the exe (private build only: it names official FormIDs and EditorIDs).
+         The public repo doesn't have the file, so its build relies on the list learned from the user's own Data
+         folder (LearnedCache.cs). -->
+    <EmbedSceneQuirks Condition="'$(EmbedSceneQuirks)' == ''">true</EmbedSceneQuirks>
+    <BuildKitProject>$(MSBuildThisFileDirectory)..\..\tools\BuildKit\BuildKit.csproj</BuildKitProject>
+    <UseBuildKitPackage Condition="'$(UseBuildKitPackage)' == ''">true</UseBuildKitPackage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseBuildKitPackage)' == 'true'">
+    <NuGetLockFilePath>packages.public.lock.json</NuGetLockFilePath>
+    <NuGetLockFilePath Condition="'$(RuntimeIdentifier)' != ''">packages.public.$(RuntimeIdentifier).lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+
+  <!-- The dotnet tool package (dotnet tool install -g sfmodcheck - -add-source <folder>), only when packing. -->
+  <PropertyGroup Condition="'$(SfModCheckPack)' == 'true'">
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>sfmodcheck</ToolCommandName>
+    <!-- run on .NET 10 and later too, when .NET 9 isn't installed -->
+    <RollForward>Major</RollForward>
+    <PackageId>sfmodcheck</PackageId>
+    <Authors>Richard Bejtlich</Authors>
+    <Description>Read-only checks of Starfield plugins (.esm): structure, header, FormIDs, links, conditions, dialogue, scenes, navmesh links, EditorIDs, deleted and identical-to-master records.</Description>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/taosecurity/sfmodcheck</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/taosecurity/sfmodcheck</RepositoryUrl>
+    <PackageTags>starfield;mods;plugins;esm;mutagen;xedit;creation-kit</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SfModCheckPack)' == 'true'">
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\LICENSE')" />
+    <None Include="..\NOTICE" Pack="true" PackagePath="\" Condition="Exists('..\NOTICE')" />
+  </ItemGroup>
+
+  <!-- The stand-alone exe: one file with .NET inside, for authors without the .NET SDK. No trimming (Mutagen uses reflection). -->
+  <PropertyGroup Condition="'$(SfModCheckStandalone)' == 'true'">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\data\engine-forms.txt" LogicalName="engine-forms.txt" />
+    <EmbeddedResource Include="..\data\link-types-seen.txt" LogicalName="link-types-seen.txt" Condition="Exists('..\data\link-types-seen.txt')" />
+    <EmbeddedResource Include="..\data\condition-params-seen.txt" LogicalName="condition-params-seen.txt" Condition="Exists('..\data\condition-params-seen.txt')" />
+    <EmbeddedResource Include="..\data\scene-alias-quirks.txt" LogicalName="scene-alias-quirks.txt" Condition="'$(EmbedSceneQuirks)' != 'false' And Exists('..\data\scene-alias-quirks.txt')" />
+  </ItemGroup>
+
+  <!-- Mutagen.Bethesda.Starfield 0.54.4 comes through BuildKit (exact pin, never the local taosecurity package). -->
+  <ItemGroup Condition="'$(UseBuildKitPackage)' != 'true'">
+    <ProjectReference Include="$(BuildKitProject)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseBuildKitPackage)' == 'true'">
+    <PackageReference Include="Taosecurity.Starfield.BuildKit" Version="[0.2.0]" />
+  </ItemGroup>
+
+</Project>
